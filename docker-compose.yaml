@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: hw02-db
+    environment:
+      POSTGRES_DB: hw02
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 567234
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d hw02"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  app:
+    build: .
+    container_name: hw02-app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SQLALCHEMY_DATABASE_URL: postgresql+psycopg2://postgres:567234@db:5432/hw02
+    ports:
+      - "8000:8000"
+
+volumes:
+  pgdata:
